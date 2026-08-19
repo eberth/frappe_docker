@@ -9,6 +9,10 @@ ARG CACHE_BUST=""
 
 USER frappe
 
+RUN yarn config set registry https://registry.npmjs.org -g \
+ && yarn config set network-timeout 600000 -g \
+ && yarn config set network-concurrency 4 -g
+
 RUN --mount=type=secret,id=apps_json,target=/opt/frappe/apps.json,uid=1000,gid=1000 \
   : "${CACHE_BUST}" && \
   export APP_INSTALL_ARGS="" && \
