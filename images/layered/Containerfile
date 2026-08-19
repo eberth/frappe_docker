@@ -9,7 +9,13 @@ ARG CACHE_BUST=""
 
 USER frappe
 
-RUN printf 'registry "https://registry.npmjs.org/"\nnetwork-timeout 600000\nnetwork-concurrency 4\n' > /home/frappe/.yarnrc
+RUN mkdir -p /home/frappe/bin \
+ && REAL_YARN="$(command -v yarn)" \
+ && ln -sf "$REAL_YARN" /home/frappe/bin/yarn-real \
+ && printf '#!/bin/sh\nif [ -f yarn.lock ]; then\n  sed -i "s#https://registry.yarnpkg.com/#https://registry.npmjs.org/#g" yarn.lock\nfi\nexec /home/frappe/bin/yarn-real "$@"\n' > /home/frappe/bin/yarn \
+ && chmod +x /home/frappe/bin/yarn
+
+ENV PATH="/home/frappe/bin:${PATH}"
 
 RUN --mount=type=secret,id=apps_json,target=/opt/frappe/apps.json,uid=1000,gid=1000 \
   : "${CACHE_BUST}" && \
